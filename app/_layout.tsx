@@ -1,9 +1,9 @@
 import { Stack } from "expo-router";
 
+import LogoTitle from "@/src/features/LogoTitle";
+
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" />
-    </Stack>
+    <Stack screenOptions={{ headerTitleAlign: "center" }} />
   );
 }

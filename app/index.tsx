@@ -1,6 +1,8 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import HeaderScreen from "@/src/features/HeaderScreen";
+import ProductLayout from "@/src/components/ProductLayout";
 
-export default function Index() {
+export default function Products() {
   return (
     <View
       style={{
@@ -9,7 +11,8 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
+      <HeaderScreen />
+      <ProductLayout />
     </View>
   );
 }
