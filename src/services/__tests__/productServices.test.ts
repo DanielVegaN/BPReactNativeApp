@@ -1,10 +1,9 @@
 import axios from 'axios';
-import { useFetchProducts, useDeleteProduct, useUpdateProduct, useValidateId } from '../../services/productServices';
+import { useFetchProducts, useDeleteProduct, useUpdateProduct, useValidateId, useCreateProduct } from '../../services/productServices';
 
 import { urlGetProducts } from '../../Types/FetcherTypes';
 import { Product } from '@/src/interfaces/product';
 
-// Mock axios
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
@@ -87,6 +86,57 @@ describe('productServices', () => {
       mockedAxios.request.mockRejectedValue(new Error(errorMessage));
 
       const { errorAxios, response } = await useUpdateProduct(product);
+
+      expect(response).toBe(false);
+      expect(errorAxios).toBeInstanceOf(Error);
+      expect(errorAxios.message).toBe(errorMessage);
+    });
+  });
+
+  describe('useValidateId', () => {
+    it('validates id successfully', async () => {
+      mockedAxios.get.mockResolvedValue({});
+
+      const isValid = await useValidateId('1');
+
+      expect(isValid).toBe(true);
+      expect(mockedAxios.get).toHaveBeenCalledWith(`${urlGetProducts}/verification/1`);
+    });
+
+    it('handles validate id error', async () => {
+      mockedAxios.get.mockRejectedValue(new Error('Validation Error'));
+
+      const isValid = await useValidateId('1');
+
+      expect(isValid).toBe(false);
+    });
+  });
+
+  describe('useCreateProduct', () => {
+    it('creates product successfully', async () => {
+      const product: Product = { id: '1', name: 'New Product', description: 'New Description', logo: 'New Logo', date_release: '2023-01-01', date_revision: '2023-01-02' };
+      mockedAxios.request.mockResolvedValue({ data: product });
+
+      const { errorAxios, response } = await useCreateProduct(product);
+
+      expect(response).toEqual(product);
+      expect(errorAxios).toBeNull();
+      expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+        method: 'post',
+        url: `${urlGetProducts}`,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(product),
+      }));
+    });
+
+    it('handles create product error', async () => {
+      const product: Product = { id: '1', name: 'New Product', description: 'New Description', logo: 'New Logo', date_release: '2023-01-01', date_revision: '2023-01-02' };
+      const errorMessage = 'Create Error';
+      mockedAxios.request.mockRejectedValue(new Error(errorMessage));
+
+      const { errorAxios, response } = await useCreateProduct(product);
 
       expect(response).toBe(false);
       expect(errorAxios).toBeInstanceOf(Error);
