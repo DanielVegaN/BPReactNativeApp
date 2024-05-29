@@ -1,16 +1,25 @@
-import React from "react";
-import { Product } from "../services/productServices";
-import { ListRenderItemInfo, Text, View, StyleSheet } from "react-native";
+import {
+  ListRenderItemInfo,
+  Text,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { Product } from "../interfaces/product";
+import { Link } from "expo-router";
 
 const styles = StyleSheet.create({
+  link: {
+    flex: 1,
+    width: "100%",
+    marginBottom: 5,
+  },
   item: {
+    width: "100%",
     flex: 1,
     padding: 20,
-    marginVertical: 8,
-    marginHorizontal: 16,
     flexDirection: "row",
-    justifyContent: "space-between",
     borderBottomColor: "#ccc",
     backgroundColor: "#fff",
     borderRadius: 10,
@@ -31,13 +40,24 @@ const styles = StyleSheet.create({
 
 const ProductElement = ({ item }: ListRenderItemInfo<Product>) => {
   return (
-    <View style={styles.item} testID="product-item">
-      <View style={styles.descriptionContainer} testID="description-container">
-        <Text style={styles.title}>{item.name}</Text>
-        <Text style={styles.subtitle}>ID: {item.id}</Text>
+    <Link
+      href={{
+        pathname: "/productDetail",
+        params: { product: JSON.stringify(item) },
+      }}
+      style={styles.link}
+    >
+      <View style={styles.item} testID="product-item">
+        <View
+          style={styles.descriptionContainer}
+          testID="description-container"
+        >
+          <Text style={styles.title}>{item.name}</Text>
+          <Text style={styles.subtitle}>ID: {item.id}</Text>
+        </View>
+        <AntDesign name="right" size={24} color="black" testID="right-icon" />
       </View>
-      <AntDesign name="right" size={24} color="black" testID="right-icon" />
-    </View>
+    </Link>
   );
 };
 

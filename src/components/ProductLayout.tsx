@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Product, useFetchProducts } from "../services/productServices";
+import { useFetchProducts } from "../services/productServices";
 import { View, Text, SafeAreaView, StyleSheet } from "react-native";
 import ProductList from "../common/ProductList";
 import AlertMessage from "../common/AlertMessage";
+import { Product } from "../interfaces/product";
 
 const styles = StyleSheet.create({
   container: {
