@@ -1,11 +1,10 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { ProductContext } from "../../services/ProductContextProvider";
-import SearchBarLayout from "../../components/SearchBarLayout"; // Adjust the path as necessary
+import SearchBarLayout from "../../components/SearchBarLayout";
 import { debounce } from "lodash";
 import { Product } from "../../interfaces/product";
 
-// Mock lodash debounce
 jest.mock("lodash", () => ({
   debounce: jest.fn((fn) => fn),
 }));

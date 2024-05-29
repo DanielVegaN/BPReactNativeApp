@@ -93,7 +93,7 @@ const ProductDetailsLayout = ({ initialError }: { initialError?: any }) => {
   }, [product]);
 
   const handleEdit = () => {
-    console.log("Edit");
+    navigation.navigate("productEdit/[id]", { id: productJson?.id });
   };
 
   const handlePopUp = () => {

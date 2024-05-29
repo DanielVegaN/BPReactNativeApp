@@ -1,91 +1,115 @@
-import { urlGetProducts } from "@/src/Types/FetcherTypes";
-import { useDeleteProduct, useFetchProducts } from "../productServices";
-import axios from "axios";
-jest.mock("axios");
+import axios from 'axios';
+import { useFetchProducts, useDeleteProduct, useUpdateProduct, useValidateId } from '../../services/productServices';
 
-const mockResponse = {
-  data: {
-    data: [
-      { id: 1, name: "Product 1" },
-      { id: 2, name: "Product 2" },
-    ],
-  },
-};
+import { urlGetProducts } from '../../Types/FetcherTypes';
+import { Product } from '@/src/interfaces/product';
 
-describe("useFetchProducts", () => {
+// Mock axios
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+describe('productServices', () => {
+
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it("should return products data when API call is successful", async () => {
-    const mockedAxios = axios as jest.Mocked<typeof axios>;
-    mockedAxios.get.mockResolvedValueOnce(mockResponse);
+  describe('useFetchProducts', () => {
+    it('fetches products successfully', async () => {
+      const products: Product[] = [{ id: '1', name: 'Test Product', description: 'Test Description', logo: 'Test Logo', date_release: '2023-01-01', date_revision: '2023-01-02' }];
+      
+      mockedAxios.get.mockResolvedValue({ data: { data: products } });
 
-    const { data, errorAxios } = await useFetchProducts();
+      const { data, errorAxios } = await useFetchProducts();
 
-    expect(data).toEqual(mockResponse.data.data);
-    expect(errorAxios).toBeNull();
+      expect(data).toEqual(products);
+      expect(errorAxios).toBeNull();
+      expect(mockedAxios.get).toHaveBeenCalledWith(urlGetProducts);
+    });
+
+    it('handles fetch products error', async () => {
+      const errorMessage = 'Network Error';
+      mockedAxios.get.mockRejectedValue(new Error(errorMessage));
+
+      const { data, errorAxios } = await useFetchProducts();
+
+      expect(data).toEqual([]);
+      expect(errorAxios).toBeInstanceOf(Error);
+      expect(errorAxios.message).toBe(errorMessage);
+    });
   });
 
-  it("should return an empty array when API returns no data", async () => {
-    const mockedAxios = axios as jest.Mocked<typeof axios>;
-    mockedAxios.get.mockResolvedValueOnce({ data: { data: [] } });
+  describe('useDeleteProduct', () => {
+    it('deletes product successfully', async () => {
+      mockedAxios.delete.mockResolvedValue({});
 
-    const { data, errorAxios } = await useFetchProducts();
+      const { errorAxios, response } = await useDeleteProduct('1');
 
-    expect(data).toEqual([]);
-    expect(errorAxios).toBeNull();
+      expect(response).toBe(true);
+      expect(errorAxios).toBeNull();
+      expect(mockedAxios.delete).toHaveBeenCalledWith(`${urlGetProducts}/1`);
+    });
+
+    it('handles delete product error', async () => {
+      const errorMessage = 'Delete Error';
+      mockedAxios.delete.mockRejectedValue(new Error(errorMessage));
+
+      const { errorAxios, response } = await useDeleteProduct('1');
+
+      expect(response).toBe(false);
+      expect(errorAxios).toBeInstanceOf(Error);
+      expect(errorAxios.message).toBe(errorMessage);
+    });
   });
 
-  it("should return an error when API call fails", async () => {
-    const mockedAxios = axios as jest.Mocked<typeof axios>;
-    const errorMessage = "Network Error";
-    mockedAxios.get.mockRejectedValueOnce(new Error(errorMessage));
+  describe('useUpdateProduct', () => {
+    it('updates product successfully', async () => {
+      const product: Product = { id: '1', name: 'Updated Product', description: 'Updated Description', logo: 'Updated Logo', date_release: '2023-02-01', date_revision: '2023-02-02' };
+      mockedAxios.request.mockResolvedValue({ data: product });
 
-    const { data, errorAxios } = await useFetchProducts();
+      const { errorAxios, response } = await useUpdateProduct(product);
 
-    expect(data).toEqual([]);
-    expect(errorAxios).toBeInstanceOf(Error);
-    expect(errorAxios.message).toBe(errorMessage);
-  });
-});
+      expect(response).toEqual(product);
+      expect(errorAxios).toBeNull();
+      expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+        method: 'put',
+        url: `${urlGetProducts}/1`,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(product),
+      }));
+    });
 
-describe("useDeleteProduct", () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+    it('handles update product error', async () => {
+      const product: Product = { id: '1', name: 'Updated Product', description: 'Updated Description', logo: 'Updated Logo', date_release: '2023-02-01', date_revision: '2023-02-02' };
+      const errorMessage = 'Update Error';
+      mockedAxios.request.mockRejectedValue(new Error(errorMessage));
 
-  it("should return response true when API call is successful", async () => {
-    const mockedAxios = axios as jest.Mocked<typeof axios>;
-    mockedAxios.delete.mockResolvedValueOnce({});
+      const { errorAxios, response } = await useUpdateProduct(product);
 
-    const { errorAxios, response } = await useDeleteProduct("1");
-
-    expect(response).toBe(true);
-    expect(errorAxios).toBeNull();
-  });
-
-  it("should return response false when API call fails", async () => {
-    const mockedAxios = axios as jest.Mocked<typeof axios>;
-    const errorMessage = "Network Error";
-    mockedAxios.delete.mockRejectedValueOnce(new Error(errorMessage));
-
-    const { errorAxios, response } = await useDeleteProduct("1");
-
-    expect(response).toBe(false);
-    expect(errorAxios).toBeInstanceOf(Error);
-    expect(errorAxios.message).toBe(errorMessage);
+      expect(response).toBe(false);
+      expect(errorAxios).toBeInstanceOf(Error);
+      expect(errorAxios.message).toBe(errorMessage);
+    });
   });
 
-  it("should call axios.delete with the correct URL", async () => {
-    const mockedAxios = axios as jest.Mocked<typeof axios>;
-    const productId = "2";
-    mockedAxios.delete.mockResolvedValueOnce({});
+  describe('useValidateId', () => {
+    it('validates id successfully', async () => {
+      mockedAxios.get.mockResolvedValue({});
 
-    await useDeleteProduct(productId);
+      const isValid = await useValidateId('1');
 
-    expect(mockedAxios.delete).toHaveBeenCalledWith(
-      `${urlGetProducts}/${productId}`
-    );
+      expect(isValid).toBe(true);
+      expect(mockedAxios.get).toHaveBeenCalledWith(`${urlGetProducts}/verification/1`);
+    });
+
+    it('handles validate id error', async () => {
+      mockedAxios.get.mockRejectedValue(new Error('Validation Error'));
+
+      const isValid = await useValidateId('1');
+
+      expect(isValid).toBe(false);
+    });
   });
 });

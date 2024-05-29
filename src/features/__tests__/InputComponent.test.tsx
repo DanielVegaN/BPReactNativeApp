@@ -1,8 +1,7 @@
-// InputComponent.test.tsx
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import InputComponent from "../InputComponent";  // Adjust the path if necessary
-import { InputProps } from "../../interfaces/input"; // Adjust the path if necessary
+import InputComponent from "../InputComponent";
+import { InputProps } from "../../interfaces/input";
 
 describe('InputComponent', () => {
   it('renders correctly with given props', () => {
