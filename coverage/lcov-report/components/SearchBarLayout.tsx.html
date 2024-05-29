@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for services/productServices.ts</title>
+    <title>Code coverage report for components/SearchBarLayout.tsx</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,13 +19,13 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">services</a> productServices.ts</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">components</a> SearchBarLayout.tsx</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>15/15</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>15/15</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -90,60 +90,75 @@
 <a name='L25'></a><a href='#L25'>25</a>
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Product } from "../interfaces/product";
-import { urlGetProducts } from "../Types/FetcherTypes";
-import axios from "axios";
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useContext } from "react";
+import { debounce } from "lodash";
+import { ProductContext } from "../services/ProductContextProvider";
+import { View } from "react-native";
+import { TextInput } from "react-native-gesture-handler";
+import InputComponent from "../features/InputComponent";
 &nbsp;
-export const useFetchProducts = async () =&gt; {
-  let data: Product[] | [] = [];
-  let errorAxios: any = null;
+const SearchBarLayout = () =&gt; {
+  const { fullProducts, setProducts } = useContext(ProductContext);
 &nbsp;
-  try {
-    const response = await axios.get(urlGetProducts);
-    data = response.data.data;
-  } catch (errorCatch) {
-    errorAxios = errorCatch;
-  }
-  return { data, errorAxios };
+  const debouncedHandleChangeValue = debounce((search: string) =&gt; {
+    const filteredProducts = fullProducts.filter((product) =&gt;
+      product.name.toLowerCase().includes(search.toLowerCase())
+    );
+    setProducts(filteredProducts);
+  }, 500);
+&nbsp;
+  return (
+    &lt;View
+      style={{
+        width: "100%",
+        marginTop: 10,
+        borderRadius: 10,
+        borderColor: "#000",
+      }}
+    &gt;
+      &lt;InputComponent placeholder="Search..." onChangeText={debouncedHandleChangeValue} /&gt;
+    &lt;/View&gt;
+  );
 };
 &nbsp;
-export const useDeleteProduct = async (id: string) =&gt; {
-  let errorAxios: any = null;
-  try {
-    await axios.delete(`${urlGetProducts}/${id}`);
-    return { errorAxios, response: true };
-  } catch (error) {
-    const errorAxios = error;
-    return { errorAxios, response: false };
-  }
-};
+export default SearchBarLayout;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->

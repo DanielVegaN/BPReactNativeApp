@@ -1,60 +1,204 @@
-import { render, screen, fireEvent } from "@testing-library/react-native";
+import React, { useState } from "react";
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import ProductDetailsLayout from "../ProductDetailsLayout";
+import { ProductContext } from "../../services/ProductContextProvider";
+import { NavigationContainer } from "@react-navigation/native";
+import ButtonComponent from "@/src/features/ButtonComponent";
+import { Text } from "react-native";
 
-const mockProduct = {
-  id: "1",
-  name: "Product Name",
-  description: "This is a product description",
-  logo: "https://example.com/logo.png",
-  date_release: "2024-05-28",
-  date_revision: "2024-05-28",
-};
+jest.mock("expo-router", () => ({
+  useLocalSearchParams: jest.fn(),
+  useNavigation: jest.fn(() => ({
+    navigate: jest.fn(),
+  })),
+}));
 
-const simulateProductRetrieval = () => {
-  return mockProduct;
-};
+jest.mock("../../services/productServices", () => ({
+  useDeleteProduct: jest.fn(),
+}));
+
+jest.mock("../../common/AlertMessage", () => {
+  return ({ message }: { message: string }) => <div>{message}</div>;
+});
 
 describe("ProductDetailsLayout", () => {
-  test("renders product details when product available", () => {
-    const product = simulateProductRetrieval();
-    render(<ProductDetailsLayout />);
-    setTimeout(() => {
-      expect(screen.getByText(/ID: 1/i)).toBeTruthy();
-      expect(screen.getByText(mockProduct.name)).toBeTruthy();
-      expect(screen.getByText(mockProduct.description)).toBeTruthy();
+  const productMock = {
+    id: "1",
+    name: "Product 1",
+    description: "This is a description",
+    logo: "logo-url",
+    date_release: "2023-01-01",
+    date_revision: "2023-01-01",
+  };
+
+  const productsMock = [
+    {
+      id: "1",
+      name: "Product 1",
+      description: "This is a description",
+      logo: "logo-url",
+      date_release: "2023-01-01",
+      date_revision: "2023-01-01",
+    },
+  ];
+
+  const fetchProductsMock = jest.fn();
+  const productServiceMock = require("../../services/productServices");
+
+  beforeEach(() => {
+    require("expo-router").useLocalSearchParams.mockReturnValue({
+      product: JSON.stringify(productMock),
+    });
+  });
+
+  it("renders correctly with given product data", () => {
+    const { getByText } = render(
+      <ProductContext.Provider
+        value={{
+          fetchProducts: fetchProductsMock,
+          fullProducts: productsMock,
+          products: productsMock,
+          setFullProducts: jest.fn(),
+          setProducts: jest.fn(),
+        }}
+      >
+        <ProductDetailsLayout />
+      </ProductContext.Provider>
+    );
+
+    expect(getByText(`ID: ${productMock.id}`)).toBeTruthy();
+    expect(getByText("Nombre")).toBeTruthy();
+    expect(getByText("Descripción")).toBeTruthy();
+    expect(getByText("Fecha liberación")).toBeTruthy();
+    expect(getByText("Fecha revisión")).toBeTruthy();
+  });
+
+  it("handles Edit button press", () => {
+    const consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
+    const { getByText } = render(
+      <ProductContext.Provider
+        value={{
+          fetchProducts: fetchProductsMock,
+          fullProducts: productsMock,
+          products: productsMock,
+          setFullProducts: jest.fn(),
+          setProducts: jest.fn(),
+        }}
+      >
+        <NavigationContainer>
+          <ProductDetailsLayout />
+        </NavigationContainer>
+      </ProductContext.Provider>
+    );
+
+    fireEvent.press(getByText("Editar"));
+    expect(consoleLogSpy).toHaveBeenCalledWith("Edit");
+  });
+
+  it("handles Delete button press and confirms delete", async () => {
+    productServiceMock.useDeleteProduct.mockResolvedValueOnce();
+
+    const { getByText, getByTestId } = render(
+      <ProductContext.Provider
+        value={{
+          fetchProducts: fetchProductsMock,
+          fullProducts: productsMock,
+          products: productsMock,
+          setFullProducts: jest.fn(),
+          setProducts: jest.fn(),
+        }}
+      >
+        <NavigationContainer>
+          <ProductDetailsLayout />
+        </NavigationContainer>
+      </ProductContext.Provider>
+    );
+
+    fireEvent.press(getByText("Eliminar"));
+    expect(getByText("Confirmar")).toBeTruthy();
+
+    fireEvent.press(getByText("Confirmar"));
+    await waitFor(() =>
+      expect(productServiceMock.useDeleteProduct).toHaveBeenCalledWith(
+        productMock.id
+      )
+    );
+    expect(fetchProductsMock).toHaveBeenCalled();
+  });
+
+  it("displays an error message if there is an error", async () => {
+    productServiceMock.useDeleteProduct.mockRejectedValueOnce("Error");
+
+    const { getByText } = render(
+      <ProductContext.Provider
+        value={{
+          fetchProducts: fetchProductsMock,
+          fullProducts: productsMock,
+          products: productsMock,
+          setFullProducts: jest.fn(),
+          setProducts: jest.fn(),
+        }}
+      >
+        <NavigationContainer>
+          <ProductDetailsLayout />
+        </NavigationContainer>
+      </ProductContext.Provider>
+    );
+
+    fireEvent.press(getByText("Eliminar"));
+    fireEvent.press(getByText("Confirmar"));
+
+    setTimeout(async () => {
+      await waitFor(() =>
+        expect(getByText("Por favor intente nuevamente")).toBeTruthy()
+      );
     }, 1000).unref();
   });
 
-  test("renders loading state when product retrieval fails", () => {
-    const simulateProductRetrievalError = () => {
-      throw new Error("Failed to retrieve product");
+  it("displays AlertMessage when error state is set", async () => {
+    jest.useRealTimers();
+    const TestWrapper = () => {
+      const [hasError, setHasError] = useState(false);
+
+      return (
+        <>
+          <ProductContext.Provider
+            value={{
+              fetchProducts: fetchProductsMock,
+              fullProducts: productsMock,
+              products: productsMock,
+              setFullProducts: jest.fn(),
+              setProducts: jest.fn(),
+            }}
+          >
+            <ProductDetailsLayout
+              initialError={
+                hasError ? { message: "Simulated error" } : undefined
+              }
+            />
+          </ProductContext.Provider>
+          <Text onPress={() => setHasError(true)} testID="triggerError">
+            Trigger Error
+          </Text>
+        </>
+      );
     };
 
-    render(<ProductDetailsLayout />);
+    const { getByText, getByTestId } = render(<TestWrapper />);
 
-    expect(screen.queryByText(mockProduct.name)).toBeNull();
-    expect(screen.getByText(/Loading.../)).toBeTruthy();
-  });
+    // Trigger the error state
+    await act(async () => {
+      fireEvent.press(getByTestId("triggerError"));
+    });
 
-  test("calls handleEdit on edit button press", () => {
-    const handleEditMock = jest.fn();
-
-    render(<ProductDetailsLayout />);
-    setTimeout(() => {
-      const editButton = screen.getByText(/Editar/i);
-      fireEvent.press(editButton);
-
-      expect(handleEditMock).toHaveBeenCalledTimes(1);
-    }, 1000).unref();
-  });
-
-  test("shows popup on delete button press", () => {
-    const { rerender } = render(<ProductDetailsLayout />);
-    setTimeout(() => {
-      const deleteButton = screen.getByText(/Eliminar/i);
-      fireEvent.press(deleteButton);
-      rerender(<ProductDetailsLayout />);
-      expect(screen.queryByText(mockProduct.name)).toBeNull();
+    setTimeout(async () => {
+      await waitFor(() => {
+        expect(
+          getByText("Algo salió mal!: Por favor intente nuevamente")
+        ).toBeTruthy();
+      });
     }, 1000).unref();
   });
 });
+
+export {};

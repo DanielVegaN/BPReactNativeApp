@@ -1,12 +1,14 @@
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useContext, useEffect, useState } from "react";
+import { Text, View, StyleSheet } from "react-native";
 import { Product } from "../interfaces/product";
 import ElementDetail from "../features/ElementDetail";
 import LogoDetail from "../features/LogoDetail";
 import ButtonComponent from "../features/ButtonComponent";
 import PopupComponent from "../features/PopupComponent";
 import { useDeleteProduct } from "../services/productServices";
+import { ProductContext } from "../services/ProductContextProvider";
+import AlertMessage from "../common/AlertMessage";
 
 const styles = StyleSheet.create({
   topContainer: {
@@ -76,10 +78,13 @@ const styles = StyleSheet.create({
   },
 });
 
-const ProductDetailsLayout = () => {
+const ProductDetailsLayout = ({ initialError }: { initialError?: any }) => {
   const { product } = useLocalSearchParams();
   const [productJson, setProductJson] = useState<Product>();
   const [isPopupVisible, setIsPopupVisible] = useState<boolean>(false);
+  const { fetchProducts } = useContext(ProductContext);
+  const navigation = useNavigation();
+  const [error, setError] = useState<any>(initialError);
 
   useEffect(() => {
     if (product) {
@@ -100,8 +105,10 @@ const ProductDetailsLayout = () => {
       try {
         await useDeleteProduct(productJson.id);
         setIsPopupVisible(!isPopupVisible);
+        fetchProducts();
+        navigation.navigate("index" as never);
       } catch (error) {
-        console.log(error);
+        setError(error as object);
       }
     }
   };
@@ -111,6 +118,15 @@ const ProductDetailsLayout = () => {
       <View style={styles.container}>
         <Text>Loading...</Text>
       </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <AlertMessage
+        message="Por favor intente nuevamente"
+        title="Algo salió mal!"
+      />
     );
   }
 

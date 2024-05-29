@@ -1,9 +1,11 @@
 import { Stack } from "expo-router";
 
-import LogoTitle from "@/src/features/LogoTitle";
+import ProductProvider from "@/src/services/ProductContextProvider";
 
 export default function RootLayout() {
   return (
-    <Stack screenOptions={{ headerTitleAlign: "center" }} />
+    <ProductProvider>
+      <Stack screenOptions={{ headerTitleAlign: "center" }} />
+    </ProductProvider>
   );
 }

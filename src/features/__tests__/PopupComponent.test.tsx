@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from "@testing-library/react-native";
-import PopupComponent from "../PopupComponent"; 
-import { Product } from "../../interfaces/product"; 
+import { render, screen, fireEvent, act } from "@testing-library/react-native";
+import PopupComponent from "../PopupComponent";
+import { Product } from "../../interfaces/product";
 
 const mockProduct: Product = {
   id: "1",
@@ -86,17 +86,18 @@ describe("PopupComponent", () => {
         }}
       />
     );
+    act(() => {
+      jest.advanceTimersByTime(100);
+      jest.advanceTimersByTime(500);
 
-    jest.advanceTimersByTime(100);
-    jest.advanceTimersByTime(500);
+      const popup = screen.getByTestId("popupContainer");
 
-    const popup = screen.getByTestId("popupContainer");
-
-    setTimeout(() => {
-      expect(popup.props.style).toEqual({
-        opacity: 1,
-        transform: [{ translateY: 0 }],
-      });  
-    }, 1000).unref();    
+      setTimeout(() => {
+        expect(popup.props.style).toEqual({
+          opacity: 1,
+          transform: [{ translateY: 0 }],
+        });
+      }, 1000).unref();
+    });
   });
 });

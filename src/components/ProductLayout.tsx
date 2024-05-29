@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useFetchProducts } from "../services/productServices";
 import { View, Text, SafeAreaView, StyleSheet } from "react-native";
 import ProductList from "../common/ProductList";
 import AlertMessage from "../common/AlertMessage";
-import { Product } from "../interfaces/product";
+import { ProductContext } from "../services/ProductContextProvider";
 
 const styles = StyleSheet.create({
   container: {
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 });
 
 const ProductLayout: React.FC = () => {
-  const [products, setProducts] = useState<Product[] | []>([]);
+  const { products, setProducts } = useContext(ProductContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
